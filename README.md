@@ -91,7 +91,12 @@ That is all – small, fast, self-contained.
 
 - First request feels slow? <br>
 Ollama is downloading the model weights (≈ 2 GB for Mistral-7B Q4).
-Watch with: docker compose logs -f ollama. Subsequent starts are instant.
+Watch with: 
+``` bash
+docker compose logs -f ollama
+```
+
+Subsequent starts are instant.
 
 - Smaller GPU / CPU-only? <br>
 Set OLLAMA_MODEL=phi3:mini (~1.8 GB) or any CPU model, and remove the GPU reservation blocks in docker-compose.yml.
