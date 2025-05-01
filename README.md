@@ -4,7 +4,7 @@ Everything runs with one Docker Compose command and fits on an 8 GB GPU.
 
 ## Quick-start
 
-clone the repo <br
+clone the repo <br>
 ``` bash
 git clone git@github.com:Savant322/test-assignment.git
 ```
@@ -19,6 +19,8 @@ first run – builds images and pulls a 7-B model (~2 GB once)
 docker compose up --build
 ```
 
+Building docker compose takes some time, be patient
+
 Swagger UI will be at http://localhost:8000/docs
 
 Restart instantly later <br>
@@ -28,6 +30,8 @@ docker compose up -d
 ```
 
 ## One-shot demo
+
+From root folder (test-assignment), run the following command to see if the service with chathistory works:
 
 ``` bash
 docker compose exec chatbot python /app/examples/run_demo.py
