@@ -25,7 +25,7 @@ Swagger UI will be at http://localhost:8000/docs
 
 ## One-shot demo
 
-From root folder (test-assignment), run the following command to see if the service with chathistory works:
+After docker compose is up, run the following command to see if the service with chathistory works:
 
 ``` bash
 docker compose exec chatbot python /app/examples/run_demo.py
