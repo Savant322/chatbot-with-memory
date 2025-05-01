@@ -4,9 +4,14 @@ Everything runs with one Docker Compose command and fits on an 8 GB GPU.
 
 ## Quick-start
 
-clone the repo <br>
-git clone git@github.com:Savant322/test-assignment.git <br>
+clone the repo <br
+``` bash
+git clone git@github.com:Savant322/test-assignment.git
+```
+
+``` bash
 cd test-assignment
+```
 
 first run – builds images and pulls a 7-B model (~2 GB once)
 
@@ -17,7 +22,10 @@ docker compose up --build
 Swagger UI will be at http://localhost:8000/docs
 
 Restart instantly later <br>
+
+``` bash
 docker compose up -d
+```
 
 ## One-shot demo
 
