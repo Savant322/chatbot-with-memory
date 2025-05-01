@@ -69,7 +69,7 @@ examples/run_demo.py -> end-to-end smoke test <br>
 Dockerfile -> single Python image (chatbot & memory) <br>
 docker-compose.yml -> adds Ollama GPU container + volume
 
-## How it works (short version)
+## How it works (logic of the project)
 
 The chatbot receives a user message on /predict.
 
