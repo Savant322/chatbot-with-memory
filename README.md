@@ -1,104 +1,83 @@
-# Chatbot with Long-Term Memory  
-*(FastAPI · LangChain · Ollama)*
+# Chatbot-with-Memory
+A tiny stack that gives a normal LLM chatbot a long-term memory.
+Everything runs with one Docker Compose command and fits on an 8 GB GPU.
 
-A minimal micro-service stack that adds lightweight “memory” to an LLM-powered chatbot.
+## Quick-start
 
-| Service    | Purpose                                                                                                             | Tech                                                                                               |
-|------------|---------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **chatbot** | Builds the prompt, calls an LLM (Ollama *or* OpenAI), and stores new turns to memory                                | FastAPI                                                                                            |
-| **memory**  | Conversation buffer + semantic search (Chroma) + optional summaries                                                 | FastAPI, LangChain                                                                                 |
-| **ollama**  | Local GPU inference for open-weight models (default = Mistral-7B Q4)                                                | [ollama/ollama](https://github.com/ollama/ollama)                                                  |
-
-
-## 1 · Quick start
-
-```bash
+clone the repo
 git clone git@github.com:Savant322/test-assignment.git
 cd test-assignment
-```
 
-# first run – builds images & pulls model (~2 GB once)
-```bash
+first run – builds images and pulls a 7-B model (~2 GB once)
+
+``` bash
 docker compose up --build
 ```
 
-# Swagger UI: http://localhost:8000/docs
+Swagger UI will be at http://localhost:8000/docs
 
-# Stop with Ctrl-C; restart in seconds:
-```bash
+restart instantly later
 docker compose up -d
-```
 
-## 2 · REST endpoints
+## One-shot demo
 
-| URL (path)                     | Method | JSON body                                 | Result                |
-|--------------------------------|--------|-------------------------------------------|-----------------------|
-| `/predict` (chatbot)           | POST   | `{ "user_message": "Hi" }`                | `{ "answer": "…" }`   |
-| `/memory_retrieval` (memory)   | POST   | `{ "query": "Almaty", "k": 3 }`           | `{ "context": "…" }`  |
-| `/memory_retrieval/add`        | POST   | `{ "user": "…", "assistant": "…" }`       | `{ "status": "ok" }`  |
-| `/healthz` (both services)     | GET    | —                                         | `{ "status": "up" }`  |
+docker compose exec chatbot python /app/examples/run_demo.py
 
+You should see
 
-## 3 · Environment variables
+   Q: What is square root of 16??  -> 4
+   Q: What about 81??  -> 9 (it means that chathistory works)
+   /memory_retrieval returns both turns
 
-All have sane defaults; override in .env or the shell.
+## Key REST endpoints
 
-| Var                | Default                      | Description                                |
-|--------------------|------------------------------|--------------------------------------------|
-| `OLLAMA_MODEL`     | `mistral:7b-instruct-q4_K_M` | Any Ollama tag that fits your GPU          |
-| `OPENAI_API_KEY`   | — (blank)                    | If set, OpenAI GPT-3.5 is used             |
-| `MEMORY_PERSIST_DIR` | `./chroma_store`           | Folder for Chroma DB                       |
-| `BUFFER_SIZE`      | `6`                          | Number of turns kept verbatim in RAM       |
-| `SUMMARY_EVERY`    | `40`                         | Summarise buffer every *N* turns           |
+POST /predict { "user_message": "Hi" } -> { "answer": "…" }
+POST /memory_retrieval { "query": "City", "k": 3 } -> { "context": "…" }
+POST /memory_retrieval/add { "user": "...", "assistant": "..." } -> { "status":"ok" }
+GET /healthz -> { "status":"up" }
 
+## Environment variables (defaults)
 
-## 4 · Project layout
+OLLAMA_MODEL mistral:7b-instruct-q4_K_M (any model tag that fits)
+OPENAI_API_KEY (blank) – if set, uses GPT-3.5 instead of Ollama
+BUFFER_SIZE 6 – turns kept verbatim in RAM
+SUMMARY_EVERY 40 – summarise buffer every N turns
+MEMORY_PERSIST_DIR ./chroma_store
+
+## Folder map
 
 src/
-├─ chatbot_api.py        # prompt builder + LLM client
-├─ memory_service.py     # REST wrapper around MemoryManager
-├─ memory.py             # buffer + vector DB + summariser
-├─ utils.py              # device pick + T5 summariser
-Dockerfile               # single Python image (chatbot & memory)
-docker-compose.yml       # adds Ollama GPU container + volumes
-requirements.txt
-.env.example
+├ chatbot_api.py prompt builder + LLM client
+├ memory_service.py REST wrapper around MemoryManager
+├ memory.py buffer + Chroma vector DB + T5 summaries
+└ utils.py device helper + summariser
+examples/run_demo.py end-to-end smoke test
+Dockerfile single Python image (chatbot & memory)
+docker-compose.yml adds Ollama GPU container + volume
 
+## How it works (short version)
 
-## 5 · How it works (short version)
+The chatbot receives a user message on /predict.
 
-/predict receives the user message.
+It calls the memory service which returns the most relevant past snippets (MiniLM embeddings stored in Chroma).
 
-The chatbot calls memory → gets snippets via MiniLM similarity search.
+It builds a prompt: fixed instruction + snippets (if any) + the new user message.
 
-Builds the prompt: instruction + memory (if any) + user.
+That prompt is sent to an LLM:
+– OpenAI GPT-3.5 when OPENAI_API_KEY is set
+– otherwise Ollama running a local model (auto-pulls the first time).
 
-Sends to LLM:
+The answer is returned to the client and, in the background, the pair {user, assistant} is posted to /memory_retrieval/add.
 
-Uses OpenAI if OPENAI_API_KEY is present
+Memory saves the turn (both in its rolling buffer and in the vector store); every SUMMARY_EVERY turns it summarises the buffer with a tiny T5-small model to avoid context bloat.
 
-Otherwise uses Ollama; if the model is missing, it auto-pulls, then retries
+That is all – small, fast, self-contained.
 
-Returns the answer and async-posts the turn to memory.
+## First-run download & other tips
 
-Memory saves to buffer & Chroma; every N turns it summarises with T5.
+- First request feels slow?
+Ollama is downloading the model weights (≈ 2 GB for Mistral-7B Q4).
+Watch with: docker compose logs -f ollama. Subsequent starts are instant.
 
-
-## 6 · Dev loop & tests
-
-# unit tests (logic only, no GPU)
-pytest -q
-
-# rebuild code layers after edits
-docker compose build chatbot memory
-docker compose up -d
-
-
-## 7 · Troubleshooting
-
-| Symptom                     | Fix                                                                                          |
-|----------------------------|----------------------------------------------------------------------------------------------|
-| First request takes minutes | Ollama is downloading the model – watch `docker compose logs -f ollama`. Only happens once.  |
-| GPU < 8 GB                  | `OLLAMA_MODEL=phi3:mini` (~1.8 GB)                                                          |
-| CPU-only machine            | Remove the `deploy.resources` GPU blocks in the compose and use a CPU model (`mistral:7b-instruct`). |
-
+- Smaller GPU / CPU-only?
+Set OLLAMA_MODEL=phi3:mini (~1.8 GB) or any CPU model, and remove the GPU reservation blocks in docker-compose.yml.
