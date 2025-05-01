@@ -57,13 +57,13 @@ MEMORY_PERSIST_DIR ./chroma_store
 ## Folder map
 
 src/ <br>
-├ chatbot_api.py prompt builder + LLM client <br>
-├ memory_service.py REST wrapper around MemoryManager <br>
-├ memory.py buffer + Chroma vector DB + T5 summaries <br>
-└ utils.py device helper + summariser <br>
-examples/run_demo.py end-to-end smoke test <br>
-Dockerfile single Python image (chatbot & memory) <br>
-docker-compose.yml adds Ollama GPU container + volume
+├ chatbot_api.py -> prompt builder + LLM client <br>
+├ memory_service.py -> REST wrapper around MemoryManager <br>
+├ memory.py -> buffer + Chroma vector DB + T5 summaries <br>
+└ utils.py -> device helper + summariser <br>
+examples/run_demo.py -> end-to-end smoke test <br>
+Dockerfile -> single Python image (chatbot & memory) <br>
+docker-compose.yml -> adds Ollama GPU container + volume
 
 ## How it works (short version)
 
