@@ -23,12 +23,6 @@ Building docker compose takes some time, be patient
 
 Swagger UI will be at http://localhost:8000/docs
 
-Restart instantly later <br>
-
-``` bash
-docker compose up -d
-```
-
 ## One-shot demo
 
 From root folder (test-assignment), run the following command to see if the service with chathistory works:
