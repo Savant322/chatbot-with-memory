@@ -6,7 +6,7 @@ Everything runs with one Docker Compose command and fits on an 8 GB GPU.
 
 clone the repo <br>
 ``` bash
-git clone git@github.com:Savant322/test-assignment.git
+git clone https://github.com/Savant322/test-assignment.git
 ```
 
 ``` bash
