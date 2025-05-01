@@ -1,0 +1,38 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    environment:
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-mistral:7b-instruct-q4_K_M}
+    volumes:
+      - ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  memory:
+    build: .
+    command: uvicorn src.memory_service:app --host 0.0.0.0 --port 8001
+    env_file: .env.example
+    depends_on: [ollama]
+    ports: ["8001:8001"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+  chatbot:
+    build: .
+    env_file: .env.example
+    depends_on: [memory, ollama]
+    ports: ["8000:8000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+
+volumes:
+  ollama:
