@@ -6,11 +6,11 @@ Everything runs with one Docker Compose command and fits on an 8 GB GPU.
 
 clone the repo <br>
 ``` bash
-git clone https://github.com/Savant322/test-assignment.git
+git clone https://github.com/Savant322/chatbot-with-memory.git
 ```
 
 ``` bash
-cd test-assignment
+cd chatbot-with-memory
 ```
 
 first run – builds images and pulls a 7-B model (~2 GB once)
